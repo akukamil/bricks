@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style> 
+
+	body,
+	html {
+	  margin: 0px;
+	  padding: 0px;
+	  width: 100%;
+	  display: flex;
+	  flex-direction: column;
+	}
+	#main {
+	  background-color: rgb(190, 190, 190);
+	  width: 100%;
+	  height: 100%;  
+	  
+	}
+
+	.chart_area {
+	  background-color: rgb(50, 50, 100);
+	  width: auto;
+	  height: 800px;
+	  margin: 60px 20px;
+	  display: flex;
+	  flex-direction: column;
+	}
+
+	.chart_area2 {
+	  background-color: rgb(50, 50, 100);
+	  width: auto;
+	  height: 500px;
+	  margin: 60px 20px;
+	  padding: 0px;
+	  display: flex;
+	  flex-direction: column;
+	}
+
+	.chart_up {
+	  background-color: rgb(110, 150, 100);
+	  width: auto;
+	  height: 60%;
+	  margin: 0px 0px 0px 0px;
+	}
+
+	.chart_down {
+	  background-color: rgb(110, 110, 100);
+	  width: auto;
+	  height: 40%;
+	  margin: 0px 0px 0px 0px;
+	}
+	
+</style>
+</head>
+
+
+<body>
+<title>Мониторинг ДНГ</title>
+<div id="main">
+  </div>
+   <div class="chart_area2" id="area10">
+  </div>
+  
+</div>
+
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js" type="text/javascript"></script>
+<script src="plotly-latest.min.js"></script>
+<script  type="text/javascript">
+
+document.addEventListener('DOMContentLoaded', load_data(), false);
+
+function load_data()
+{    
+    
+    
+    AWS.config.update({
+      region: 'eu-west-2',
+      endpoint: 'https://dynamodb.eu-west-2.amazonaws.com',
+      accessKeyId: 'AKIAJWD74NC33J3N67PA',
+      secretAccessKey: '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'
+    });
+        
+	var docClient = new AWS.DynamoDB.DocumentClient();
+	var start_ts=Math.floor(Date.now() / 1000)-3800;
+	var inc=1;
+	
+	docClient.query({   TableName: "dng7",	KeyConditionExpression: "m_key = :m_key and t_stamp>=:ts",	ProjectionExpression: "t_stamp, p_1",	ExpressionAttributeValues: { ":m_key": "ALLIANCE",":ts":start_ts},	ReturnConsumedCapacity:  "TOTAL"	}, get_alliance);	
+	
+	function get_alliance(err, data)    	{render_alliance(data,"area10","Кирпичный завод Альянс")};  
+	
+
+
+	function render_alliance(data, chart_name, m_title)
+	{
+		data=data.Items
+		
+		var xv=[], v=[];
+		for (var i=0; i< data.length;i+=inc)
+		{
+			xv.push(timeConverter(data[i].t_stamp));
+			v.push(data[i].p_1);
+		}
+		
+		
+		var plot_data=[
+		
+			{x:xv,y:v, name: '___V, м3___',fillcolor: 'rgba(50, 50, 50,0.5)', line: { color: 'rgb(150, 150, 50)'}}
+
+		];		
+				
+		var layout = {
+		  title: m_title,
+		  responsive: true,
+		  autorange: true,
+		  showlegend: true
+		};
+				
+		Plotly.newPlot(chart_name,plot_data,layout, {responsive: true}); 	
+	}
+	
+	
+
+	
+}
+
+function timeConverter(UNIX_timestamp){
+    var date = new Date(UNIX_timestamp * 1000);
+	var hours = date.getHours();
+	var minutes = "0" + date.getMinutes();
+	var seconds = "0" + date.getSeconds();
+	var formattedTime = hours + '-' + minutes.substr(-2) + '-' + seconds.substr(-2);
+    return date;
+}
+
+</script>
+</body>
+</html>
