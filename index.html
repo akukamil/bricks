@@ -87,7 +87,7 @@ function load_data()
 	
 	docClient.query({   TableName: "dng7",	KeyConditionExpression: "m_key = :m_key and t_stamp>=:ts",	ProjectionExpression: "t_stamp, p_1",	ExpressionAttributeValues: { ":m_key": "ALLIANCE",":ts":start_ts},	ReturnConsumedCapacity:  "TOTAL"	}, get_alliance);	
 	
-	function get_alliance(err, data)    	{render_alliance(data,"area10","Кирпичный завод Альянс")};  
+	function get_alliance(err, data)    	{render_alliance(data,"area10","Кирпичный завод Брикс")};  
 	
 
 
