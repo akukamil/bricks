@@ -95,7 +95,7 @@ function load_data()
     });
         
 	var docClient = new AWS.DynamoDB.DocumentClient();
-	var start_ts=Math.floor(Date.now() / 1000)-3800;
+	var start_ts=Math.floor(Date.now() / 1000)-12000;
 	var inc=1;
 	
 	docClient.query({   TableName: "dng7",	KeyConditionExpression: "m_key = :m_key and t_stamp>=:ts",	ProjectionExpression: "t_stamp, p_1",	ExpressionAttributeValues: { ":m_key": "ALLIANCE",":ts":start_ts},	ReturnConsumedCapacity:  "TOTAL"	}, get_alliance);	
