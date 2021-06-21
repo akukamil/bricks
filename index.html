@@ -52,7 +52,7 @@
     <table class="tbl" id="my_table">
 	  <tr>
 		<td width="150px></td>
-		<th scope="col">Время</th>
+		<th scope="col">Дата Время</th>
 		<th scope="col">Стандартный объем,м3</th>
 	  </tr>
     </table>
@@ -74,7 +74,7 @@ function makeTable(array) {
             var tm = document.createElement('td');
             tm.textContent = new Date(array[i].t_stamp*1000).toLocaleString();
 			row.appendChild(tm);
-			tm.style.width= "150px";
+			tm.style.width= "180px";
             var p = document.createElement('td');
             p.textContent = array[i].p_1;
             row.appendChild(p);
