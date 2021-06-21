@@ -72,7 +72,7 @@ function makeTable(array) {
         var row = document.createElement('tr');
 
             var tm = document.createElement('td');
-            tm.textContent = new Date(array[i].t_stamp).toLocaleString();
+            tm.textContent = new Date(array[i].t_stamp*1000).toLocaleString();
 			row.appendChild(tm);
 			tm.style.width= "150px";
             var p = document.createElement('td');
