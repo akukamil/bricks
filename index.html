@@ -92,7 +92,7 @@ function load_data()
 		region: 'eu-west-2',
 		endpoint: 'https://dynamodb.eu-west-2.amazonaws.com',
 		accessKeyId: 'AKIAVLPJFTNLMAPB455Z',
-		secretAccessKey: skey.replace(/_//g, "")
+		secretAccessKey: skey.replace(/_/g, '')
 	});
         
 	var docClient = new AWS.DynamoDB.DocumentClient();
