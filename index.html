@@ -28,13 +28,20 @@
 	  flex-direction: column;
 	}
 
-	.tbl {
-	  width: auto;
-	  height: 500px;
-	  margin: 60px 20px;
-	  padding: 0px;
-	  display: flex;
-	  flex-direction: column;
+	table {
+	  font-family: arial, sans-serif;
+	  border-collapse: collapse;
+	  width: 100%;
+	}
+
+	td, th {
+	  border: 1px solid #dddddd;
+	  text-align: left;
+	  padding: 8px;
+	}
+
+	tr:nth-child(even) {
+	  background-color: #dddddd;
 	}
 </style>
 </head>
@@ -48,15 +55,16 @@
   </div>
   
   
-  </div>
-    <table class="tbl" id="my_table">
-	  <tr>
-		<td width="150px></td>
-		<th scope="col">Дата Время</th>
-		<th scope="col">Стандартный объем,м3</th>
-	  </tr>
-    </table>
-  </div>
+<table id="my_table">
+  <tr>
+    <th>Дата-Время</th>
+    <th>Объем,м3</th>
+    <th>Температура, С</th>
+	<th>Давление, Атм</th>
+  </tr>
+</table>
+   
+     
    
 </div>
 
@@ -66,22 +74,23 @@
 
 document.addEventListener('DOMContentLoaded', load_data(), false);
 
-function makeTable(array) {
-    var table = document.getElementById('my_table');
-    for (var i = 0; i < array.length; i++) {
-        var row = document.createElement('tr');
+function makeTable(data) {
+    var tableRef = document.getElementById('my_table');
+	
+	
+	row_cnt=1
+	for (let i=data.length-10;i<data.length;i++) {
+	
+		var newRow = tableRef.insertRow(row_cnt);
+		newRow.insertCell(0).appendChild(document.createTextNode(new Date(data[i].t_stamp*1000).toLocaleString()));
+		newRow.insertCell(1).appendChild(document.createTextNode(data[i].p_1));
+		newRow.insertCell(2).appendChild(document.createTextNode(data[i].p_2));
+		newRow.insertCell(3).appendChild(document.createTextNode(data[i].p_3));
+		row_cnt++;
+	}
+	
 
-            var tm = document.createElement('td');
-            tm.textContent = new Date(array[i].t_stamp*1000).toLocaleString();
-			row.appendChild(tm);
-			tm.style.width= "180px";
-            var p = document.createElement('td');
-            p.textContent = array[i].p_1;
-            row.appendChild(p);
 
-        table.appendChild(row);
-    }
-    return table;
 }
 
 function load_data()
@@ -96,10 +105,10 @@ function load_data()
 	});
         
 	var docClient = new AWS.DynamoDB.DocumentClient();
-	var start_ts=Math.floor(Date.now() / 1000)-12000;
+	var start_ts=Math.floor(Date.now() / 1000)-1200000;
 	var inc=1;
 	
-	docClient.query({   TableName: "dng7",	KeyConditionExpression: "m_key = :m_key and t_stamp>=:ts",	ProjectionExpression: "t_stamp, p_1",	ExpressionAttributeValues: { ":m_key": "ALLIANCE",":ts":start_ts},	ReturnConsumedCapacity:  "TOTAL"	}, get_alliance);	
+	docClient.query({   TableName: "dng7",	KeyConditionExpression: "m_key = :m_key and t_stamp>=:ts",	ProjectionExpression: "t_stamp, p_1, p_2, p_3",	ExpressionAttributeValues: { ":m_key": "BRICKS",":ts":start_ts},	ReturnConsumedCapacity:  "TOTAL"	}, get_alliance);	
 	
 	function get_alliance(err, data) {render_alliance(data,"area10","Кирпичный завод Брикс")};  
 	
@@ -109,17 +118,21 @@ function load_data()
 	{
 		data=data.Items
 		
-		var xv=[], v=[];
-		for (var i=0; i< data.length;i+=inc)
+		var xv=[], v=[],t=[],p=[];
+		for (var i=1; i< data.length;i+=inc)
 		{
 			xv.push(timeConverter(data[i].t_stamp));
-			v.push(data[i].p_1);
+			v.push(data[i].p_1-data[i-1].p_1);
+			t.push(data[i].p_2);
+			p.push(data[i].p_3);
 		}
 		
 		
 		var plot_data=[
 		
-			{x:xv,y:v, name: '___V, м3___',fillcolor: 'rgba(50, 50, 50,0.5)', line: { color: 'rgb(150, 150, 50)'}}
+			{x:xv,y:v, name: '__V, м3__', type: 'bar',fillcolor: 'rgba(50, 50, 50,0.5)'},
+			{x:xv,y:t, name: '__T, C___',mode: 'lines+markers', type: 'scatter',fillcolor: 'rgba(50, 50, 50,0.5)'},
+			{x:xv,y:p, name: '__P, Атм_',mode: 'lines+markers', type: 'scatter',fillcolor: 'rgba(50, 50, 50,0.5)'}
 
 		];		
 				
@@ -127,8 +140,7 @@ function load_data()
 		  title: m_title,
 		  responsive: true,
 		  autorange: true,
-		  showlegend: true,
-		  mode: 'lines+markers'
+		  showlegend: true
 		};
 				
 		Plotly.newPlot(chart_name,plot_data,layout, {responsive: true}); 	
@@ -139,24 +151,6 @@ function load_data()
 	
 	
 	
-}
-
-function timeConverter(UNIX_timestamp){
-    var date = new Date(UNIX_timestamp * 1000);
-	var hours = date.getHours();
-	var minutes = "0" + date.getMinutes();
-	var seconds = "0" + date.getSeconds();
-	var formattedTime = hours + '-' + minutes.substr(-2) + '-' + seconds.substr(-2);
-    return date;
-}
-
-function timeConverter2(UNIX_timestamp){
-    var date = new Date(UNIX_timestamp * 1000);
-	var hours = date.getHours();
-	var minutes = "0" + date.getMinutes();
-	var seconds = "0" + date.getSeconds();
-	var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-    return formattedTime;
 }
 
 
