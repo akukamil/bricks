@@ -58,7 +58,8 @@
 <table id="my_table">
   <tr>
     <th>Дата-Время</th>
-    <th>Объем,м3</th>
+    <th>Нак.Объем,м3</th>
+	<th>Объем за день,м3</th>
     <th>Давление, Атм</th>
 	<th>Температура, С</th>
   </tr>
@@ -76,21 +77,28 @@ document.addEventListener('DOMContentLoaded', load_data(), false);
 
 function makeTable(data) {
     var tableRef = document.getElementById('my_table');
-	
-	
+		
 	row_cnt=1
-	for (let i=data.length-10;i<data.length;i++) {
-	
+	prv_v=0
+	for (let i=0;i<data.length;i++) {	
 		var newRow = tableRef.insertRow(row_cnt);
-		newRow.insertCell(0).appendChild(document.createTextNode(new Date(data[i].t_stamp*1000).toLocaleString()));
-		newRow.insertCell(1).appendChild(document.createTextNode(data[i].p_1));
-		newRow.insertCell(2).appendChild(document.createTextNode(data[i].p_2));
-		newRow.insertCell(3).appendChild(document.createTextNode(data[i].p_3));
-		row_cnt++;
+		let dt=new Date(data[i].t_stamp*1000);
+		if (dt.getHours()===10) {			
+			newRow.insertCell(0).appendChild(document.createTextNode(dt.toLocaleString()));
+			newRow.insertCell(1).appendChild(document.createTextNode(Math.round(data[i].p_1)));
+			
+			if (prv_v===0)
+				newRow.insertCell(2).appendChild(document.createTextNode("-"));			
+			else
+				newRow.insertCell(2).appendChild(document.createTextNode(Math.round(data[i].p_1-prv_v)));
+			
+			newRow.insertCell(3).appendChild(document.createTextNode(data[i].p_2));
+			newRow.insertCell(4).appendChild(document.createTextNode(data[i].p_3));
+			prv_v=data[i].p_1
+			row_cnt++;				
+		}
+
 	}
-	
-
-
 }
 
 function load_data()
@@ -122,7 +130,7 @@ function load_data()
 		for (var i=1; i< data.length;i+=inc)
 		{
 			xv.push(timeConverter(data[i].t_stamp));
-			v.push(data[i].p_1-data[i-1].p_1);
+			v.push(Math.round(data[i].p_1-data[i-1].p_1));
 			t.push(data[i].p_3);
 			p.push(data[i].p_2);
 		}
@@ -130,7 +138,7 @@ function load_data()
 		
 		var plot_data=[
 		
-			{x:xv,y:v, name: '__V, м3__', type: 'bar',fillcolor: 'rgba(50, 50, 50,0.5)'},
+			{x:xv,y:v, name: '__V, м3__',mode: 'lines+markers', type: 'scatter',fillcolor: 'rgba(50, 50, 50,0.5)'},
 			{x:xv,y:t, name: '__T, C___',mode: 'lines+markers', type: 'scatter',fillcolor: 'rgba(50, 50, 50,0.5)'},
 			{x:xv,y:p, name: '__P, Атм_',mode: 'lines+markers', type: 'scatter',fillcolor: 'rgba(50, 50, 50,0.5)'}
 
